@@ -9,18 +9,18 @@ The overall structure of the project is as follows:
 
 ```bazaar
 
-project
-│   README.md
-│   main.py
-│   download_datasets.py
-│   Journey.ipynb
-│   disease_target.json
-│   evidence_stats.json
-│
-└───datasets
-        └───evidences
-        └───diseases
-        └───targets
+data_analysis
+    │   README.md
+    │   main.py
+    │   download_datasets.py
+    │   Journey.ipynb
+    │   disease_target.json
+    │   evidence_stats.json
+    │
+    └───datasets
+            └───evidences
+            └───diseases
+            └───targets
 ```
 
 The two Python scripts `main.py` and `download_datasets.py` are main scripts for downloading datasets and preforming
@@ -68,7 +68,6 @@ The final output of each files is as follows:
    "median":0.7,
    "top3":[0.7,0.7,0.7]
 }
-...
 ```
 2.disease_target.json
 ```json
@@ -77,11 +76,10 @@ The final output of each files is as follows:
    "targetId":"ENSG00000284299",
    "median":0.0
 }
-...
 ```
 Another important result is the number of target-target pairs sharing a connection to at least two diseases, which is
 printed when `main.py` is finished.
-```json
+```text
 Number of target-target pairs share a connection to at least two diseases : 142015
 ```
 
