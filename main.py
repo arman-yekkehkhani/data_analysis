@@ -1,4 +1,5 @@
 import argparse
+import functools
 import multiprocessing as mp
 import os
 
@@ -60,8 +61,19 @@ def compute_join_stats(evd_df: DataFrame, dss_df: DataFrame, tgt_df: DataFrame) 
             )
 
 
-def count_n_common_neighbors(df: DataFrame, n_neigh: int, partitions: int):
-    df = (df
+def has_n_common_neigh(df: DataFrame, n: int):
+    """
+    Returns true if a tgt-tgt pair has greater or equal to n neighbours
+    """
+    df['has_n_neighbour'] = df.apply(lambda x: len(x['diseaseId_x'] & x['diseaseId_y']) >= n, axis=1)
+    return df
+
+
+def count_n_common_neighbors(evd_df: DataFrame, n_neigh: int, partitions: int):
+    """
+    Returns total count of target-target pairs having more than n_neigh diseases in common
+    """
+    df = (evd_df
           .filter(['diseaseId', 'targetId'])
           .groupby('targetId')
           .agg(set)
@@ -76,21 +88,12 @@ def count_n_common_neighbors(df: DataFrame, n_neigh: int, partitions: int):
     end_idx.append(len(df) - 1)
     dfs = [df.iloc[s:f, :] for (s, f) in zip(start_idx, end_idx)]
 
-    def f(df: DataFrame):
-        df['has_n_neighbour'] = df.apply(lambda x: len(x['diseaseId_x'] & x['diseaseId_y']) > n_neigh, axis=1)
-        return df
-
+    copier = functools.partial(has_n_common_neigh, n=n_neigh)
     with mp.Pool(mp.cpu_count()) as pool:
-        res = pd.concat(pool.map(f, dfs))
+        res = pd.concat(pool.map(copier, dfs))
 
-    # subtract same tgt-tgt count
-    return res['has_n_neighbour'].sum() - df['targetId'].nunique()
-
-
-def spark():
-    # psutils -> get cpus
-    # local[numbr of cpus]
-    pass
+    # subtract same tgt-tgt count, and divide by 2 for repeated results
+    return (res['has_n_neighbour'].sum() - evd_df['targetId'].nunique()) / 2
 
 
 if __name__ == '__main__':
@@ -108,11 +111,12 @@ if __name__ == '__main__':
 
     # compute stats of evidences df and save
     stat_df = compute_stats(evd_df)
-    stat_df.to_json('evidence_stats.json', orient='records', lines=True)
+    # stat_df.to_json('evidence_stats.json', orient='records', lines=True)
 
     # compute stats of target-disease df and save
     dss_tgt_df = compute_join_stats(evd_df, dss_df, tgt_df)
-    dss_tgt_df.to_json('disease_target.json', orient='records', lines=True)
+    # dss_tgt_df.to_json('disease_target.json', orient='records', lines=True)
 
+    # c = Copier()
     print(f'Number of target-target pairs share a connection to at least two diseases'
           f' : {count_n_common_neighbors(evd_df, 2, mp.cpu_count())}')
