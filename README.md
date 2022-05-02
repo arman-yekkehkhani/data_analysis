@@ -51,6 +51,10 @@ pip install -r requirements.txt
 ```bash
 python main.py
 
+# computes number of target-target pairs having more than one disease in common
+# this process is a bit lengthy(takes about 5 min to run on my laptop with 8Gb of Ram and Quad-Core Intel Core i5) so
+python main.py --common_neighbors
+
 # removes directories containing the datasets in the current dir
 # fetch datasets
 python main.py --over-write true
