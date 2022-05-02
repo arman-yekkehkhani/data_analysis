@@ -111,11 +111,11 @@ if __name__ == '__main__':
 
     # compute stats of evidences df and save
     stat_df = compute_stats(evd_df)
-    # stat_df.to_json('evidence_stats.json', orient='records', lines=True)
+    stat_df.to_json('evidence_stats.json', orient='records', lines=True)
 
     # compute stats of target-disease df and save
     dss_tgt_df = compute_join_stats(evd_df, dss_df, tgt_df)
-    # dss_tgt_df.to_json('disease_target.json', orient='records', lines=True)
+    dss_tgt_df.to_json('disease_target.json', orient='records', lines=True)
 
     # c = Copier()
     print(f'Number of target-target pairs share a connection to at least two diseases'
