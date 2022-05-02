@@ -20,7 +20,7 @@ def top3(x):
     returns top 3 greatest elements
     """
     if len(x.values) < 3:
-        return x.values
+        return list(x.values)
     else:
         idx = np.argpartition(x.values, -3)[-3:]
         return x.values[idx].tolist()
@@ -30,11 +30,13 @@ def compute_stats(df: DataFrame) -> DataFrame:
     """
     Groups evidence df by ['diseaseId', 'targetId'], then compute median and 3 greatest scores
     """
-    return (df
-            .groupby(['diseaseId', 'targetId'])
-            .agg({'score': ['median', top3]})
-            .reset_index(level=[0, 1])
-            )
+    result = (df
+              .groupby(['diseaseId', 'targetId'])
+              .agg({'score': ['median', top3]})
+              .reset_index(level=[0, 1])
+              )
+    result.columns = ['diseaseId', 'targetId', 'median', 'top3']
+    return result
 
 
 def compute_join_stats(evd_df: DataFrame, dss_df: DataFrame, tgt_df: DataFrame) -> DataFrame:
@@ -100,9 +102,9 @@ if __name__ == '__main__':
         download_datasets()
 
     # load data
-    evd_df = pd.read_parquet('./evidences', engine=PARQUET_ENGINE, columns=evidence_cols)
-    dss_df = pd.read_parquet('./diseases', engine=PARQUET_ENGINE, columns=disease_cols)
-    tgt_df = pd.read_parquet('./targets', engine=PARQUET_ENGINE, columns=target_cols)
+    evd_df = pd.read_parquet('./datasets/evidences', engine=PARQUET_ENGINE, columns=evidence_cols)
+    dss_df = pd.read_parquet('./datasets/diseases', engine=PARQUET_ENGINE, columns=disease_cols)
+    tgt_df = pd.read_parquet('./datasets/targets', engine=PARQUET_ENGINE, columns=target_cols)
 
     # compute stats of evidences df and save
     stat_df = compute_stats(evd_df)
