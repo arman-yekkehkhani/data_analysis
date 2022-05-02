@@ -17,11 +17,12 @@ def fetch(ftp: FTP, name: str, url: Optional[str] = None) -> None:
     """
     Fetches datasets from the given url and saves to a directory with specified name
     """
-    ftp.cwd(BASE_URL + url if url else name)
+    ftp.cwd(BASE_URL + (url if url else name))
     files = ftp.nlst()
     for idx, f in enumerate(files):
         print(f'Downloading {name} files: {idx}/{len(files) - 1}')
         ftp.retrbinary('RETR ' + f, open(f'./datasets/{name}/{f}', 'wb').write)
+    ftp.cwd('/')
 
 
 def recreate_dirs() -> None:
