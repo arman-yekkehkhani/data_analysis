@@ -101,7 +101,8 @@ def count_n_common_neighbors(evd_df: DataFrame, n_neigh: int, partitions: int):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--overwrite', action='store_true', default=False)
+    parser.add_argument('--overwrite', action='store_true')
+    parser.add_argument('--common_neighbors', action='store_true')
     args = parser.parse_args()
 
     if args.overwrite or not os.path.isdir('datasets'):
@@ -120,5 +121,6 @@ if __name__ == '__main__':
     dss_tgt_df = compute_join_stats(evd_df, dss_df, tgt_df)
     dss_tgt_df.to_json('disease_target.json', orient='records', lines=True)
 
-    print(f'Number of target-target pairs share a connection to at least two diseases'
-          f' : {count_n_common_neighbors(evd_df, 2, mp.cpu_count())}')
+    if args.common_neighbors:
+        print(f'Number of target-target pairs share a connection to at least two diseases'
+              f' : {count_n_common_neighbors(evd_df, 2, mp.cpu_count())}')
