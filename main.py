@@ -65,7 +65,8 @@ def has_n_common_neigh(df: DataFrame, n: int):
     """
     Returns true if a tgt-tgt pair has greater or equal to n neighbours
     """
-    df['has_n_neighbour'] = df.apply(lambda x: len(x['diseaseId_x'] & x['diseaseId_y']) >= n, axis=1)
+    f = lambda x: len(x['dss_x'] & x['dss_y']) > 2 if x['tgt_x'] != x['tgt_y'] else False
+    df['has_n_neighbour'] = df.apply(f, axis=1)
     return df
 
 
@@ -77,10 +78,12 @@ def count_n_common_neighbors(evd_df: DataFrame, n_neigh: int, partitions: int):
           .filter(['diseaseId', 'targetId'])
           .groupby('targetId')
           .agg(set)
+          .reset_index(level=0)
           )
 
     # cartesian product
     df = df.merge(df, how='cross')
+    df.columns = ['tgt_x', 'dss_x', 'tgt_y', 'dss_y']
 
     # partition df
     start_idx = [i * (len(df) // partitions) for i in range(partitions)]
@@ -92,8 +95,8 @@ def count_n_common_neighbors(evd_df: DataFrame, n_neigh: int, partitions: int):
     with mp.Pool(mp.cpu_count()) as pool:
         res = pd.concat(pool.map(copier, dfs))
 
-    # subtract same tgt-tgt count, and divide by 2 for repeated results
-    return (res['has_n_neighbour'].sum() - evd_df['targetId'].nunique()) / 2
+    # divide by 2 for repeated results
+    return int(res['has_n_neighbour'].sum() / 2)
 
 
 if __name__ == '__main__':
@@ -117,6 +120,5 @@ if __name__ == '__main__':
     dss_tgt_df = compute_join_stats(evd_df, dss_df, tgt_df)
     dss_tgt_df.to_json('disease_target.json', orient='records', lines=True)
 
-    # c = Copier()
     print(f'Number of target-target pairs share a connection to at least two diseases'
           f' : {count_n_common_neighbors(evd_df, 2, mp.cpu_count())}')
