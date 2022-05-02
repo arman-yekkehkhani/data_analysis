@@ -1,8 +1,12 @@
+import argparse
 import multiprocessing as mp
+import os
 
 import numpy as np
 import pandas as pd
 from pandas import DataFrame
+
+from download_datasets import download_datasets
 
 PARQUET_ENGINE = 'pyarrow'
 
@@ -39,13 +43,13 @@ def compute_join_stats(evd_df: DataFrame, dss_df: DataFrame, tgt_df: DataFrame) 
     """
     return (evd_df
             .merge(dss_df,
-                   left_on="diseaseId",
-                   right_on="id",
-                   how="inner")
+                   left_on='diseaseId',
+                   right_on='id',
+                   how='inner')
             .merge(tgt_df,
-                   left_on="targetId",
-                   right_on="id",
-                   how="inner")
+                   left_on='targetId',
+                   right_on='id',
+                   how='inner')
             .filter(['diseaseId', 'targetId', 'score', 'name', 'approvedSymbol'])
             .groupby(['diseaseId', 'targetId'])
             .agg(median=('score', 'median'))
@@ -87,11 +91,13 @@ def spark():
     pass
 
 
-if __name__ == "__main__":
-    # argparse
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--overwrite', action='store_true', default=False)
+    args = parser.parse_args()
 
-    # if over_write or not exists():
-    #   download()
+    if args.overwrite or not os.path.isdir('datasets'):
+        download_datasets()
 
     # load data
     evd_df = pd.read_parquet('./evidences', engine=PARQUET_ENGINE, columns=evidence_cols)
