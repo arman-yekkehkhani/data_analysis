@@ -64,8 +64,7 @@ def count_common_elm(df: DataFrame):
     """
     count common elements between `left` and `right` columns of a dataframe
     """
-    df['n_neigh'] = df.apply(lambda x: len(x['left'] & x['right']), axis=1)
-    return df
+    return np.array(list(map(lambda x, y: len(set(x) & set(y)), df['left'], df['right'])))
 
 
 def cartesian_prod_idx(size):
@@ -106,15 +105,14 @@ def calc_common_neighbors(evd_df: DataFrame, n_neigh: int, partitions: int):
 
     dfs = cartesian_product(df, df, partitions=partitions)
     with mp.Pool(mp.cpu_count()) as pool:
-        res = pd.concat(pool.map(count_common_elm, dfs))
+        res = np.concatenate(pool.map(count_common_elm, dfs))
 
-    return len(res[res.n_neigh >= n_neigh])
+    return len(res[res >= n_neigh])
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--overwrite', action='store_true')
-    parser.add_argument('--common_neighbors', action='store_true')
     args = parser.parse_args()
 
     if args.overwrite or not os.path.isdir('datasets'):
@@ -133,10 +131,9 @@ if __name__ == '__main__':
     dss_tgt_df = compute_join_stats(evd_df, dss_df, tgt_df)
     dss_tgt_df.to_json('disease_target.json', orient='records', lines=True)
 
-    if args.common_neighbors:
-        import time
+    import time
 
-        t0 = time.time()
-        print(f'Number of target-target pairs share a connection to at least two diseases'
-              f' : {calc_common_neighbors(evd_df, n_neigh=2, partitions=mp.cpu_count())},'
-              f' done in {time.time() - t0:.2f}s')
+    t0 = time.time()
+    print(f'Number of target-target pairs share a connection to at least two diseases'
+          f' : {calc_common_neighbors(evd_df, n_neigh=2, partitions=mp.cpu_count())},'
+          f' done in {time.time() - t0:.2f}s')
