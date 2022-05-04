@@ -25,8 +25,10 @@ data_analysis
 
 The two Python scripts `main.py` and `download_datasets.py` are main scripts for downloading datasets and preforming
 analysis. Final results of the analysis is saved in `evidence_stats.json` and `disease_target.json`. The former contains
-Json objects of evidence statistics, while the later include disease-target pair stats. File `Journey.ipynb` contains a comprehensive description of my approach for this project. I tried to compare
-different options and justify my decisions.
+Json objects of evidence statistics, while the later include disease-target pair stats. File `Journey.ipynb` contains a
+comprehensive description of my approach for this project. I tried to compare different options and justify my
+decisions.
+
 # How to run the script
 
 In order to run the `main.py` script, you should follow these steps:
@@ -38,8 +40,8 @@ git clone https://github.com/arman-yekkehkhani/data_analysis
 cd data_analysis
 ```
 
-2. Create a new Python virtual environment and install the dependencies from `requirements.text`. Here, I use
-   Python >= 3.7 and pip as a package manager.
+2. Create a new Python virtual environment and install the dependencies from `requirements.text`. Here, I use Python >=
+   3.7 and pip as a package manager.
 
 ```bash
 python3 venv -m env
@@ -48,12 +50,9 @@ pip install -r requirements.txt
 ```
 
 3. run `main.py` with desired args.
+
 ```bash
 python main.py
-
-# computes number of target-target pairs having more than one disease in common
-# this process is a bit lengthy(takes about 30s to run on my laptop with 8Gb of Ram and Quad-Core Intel Core i5) so
-python main.py --common_neighbors
 
 # removes directories containing the datasets in the current dir
 # fetch datasets
@@ -65,24 +64,33 @@ python main.py --over-write true
 The final output of each files is as follows:
 
 1.evidence_stats.json
+
 ```json
 {
-   "diseaseId":"EFO_0000095",
-   "targetId":"ENSG00000082898",
-   "median":0.7,
-   "top3":[0.7,0.7,0.7]
+  "diseaseId": "EFO_0000095",
+  "targetId": "ENSG00000082898",
+  "median": 0.7,
+  "top3": [
+    0.7,
+    0.7,
+    0.7
+  ]
 }
 ```
+
 2.disease_target.json
+
 ```json
 {
-   "diseaseId":"EFO_0003847",
-   "targetId":"ENSG00000284299",
-   "median":0.0
+  "diseaseId": "EFO_0003847",
+  "targetId": "ENSG00000284299",
+  "median": 0.0
 }
 ```
+
 Another important result is the number of target-target pairs sharing a connection to at least two diseases, which is
 printed when `main.py` is finished.
+
 ```text
 Number of target-target pairs share a connection to at least two diseases : 364624, done in 33.80s
 ```
