@@ -60,16 +60,18 @@ def compute_join_stats(evd_df: DataFrame, dss_df: DataFrame, tgt_df: DataFrame) 
             )
 
 
-def count_common_neigh(df: DataFrame):
+def count_common_elm(df: DataFrame):
     """
-    # TODO:
+    count common elements between `left` and `right` columns of a dataframe
     """
     df['n_neigh'] = df.apply(lambda x: len(x['left'] & x['right']), axis=1)
     return df
 
 
-def cartesian_prod_idx(size=100):
-    # TODO:
+def cartesian_prod_idx(size):
+    """
+    Return cartesian_product of indices of two dfs, excluding x-x, retaining one of x-y and y-x
+    """
     return np.hstack(
         [np.vstack([np.ones(size - i - 1, dtype=np.int8) * i, np.arange(i + 1, size, dtype=np.int8)]) for i in
          range(size)]).T
@@ -77,12 +79,8 @@ def cartesian_prod_idx(size=100):
 
 def cartesian_product(*dfs, partitions):
     """
-    TODO
-    :param dfs:
-    :param partitions:
-    :return:
+    Returns cartesian_product of dfs of the same size divided in to partitions
     """
-    # TODO: generalize to multi df
     idx = cartesian_prod_idx((len(dfs[0])))
     start_idx = [i * (len(idx) // partitions) for i in range(partitions)]
     end_idx = start_idx[1:]
@@ -98,7 +96,6 @@ def calc_common_neighbors(evd_df: DataFrame, n_neigh: int, partitions: int):
     Returns total count of target-target pairs having more than n_neigh diseases in common
     """
     df = (evd_df
-          .head(800)
           .filter(['diseaseId', 'targetId'])
           .groupby('targetId')
           .agg(set)
@@ -109,9 +106,8 @@ def calc_common_neighbors(evd_df: DataFrame, n_neigh: int, partitions: int):
 
     dfs = cartesian_product(df, df, partitions=partitions)
     with mp.Pool(mp.cpu_count()) as pool:
-        res = pd.concat(pool.map(count_common_neigh, dfs))
+        res = pd.concat(pool.map(count_common_elm, dfs))
 
-    print(res[res.n_neigh >= n_neigh])
     return len(res[res.n_neigh >= n_neigh])
 
 

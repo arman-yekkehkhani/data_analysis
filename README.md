@@ -52,7 +52,7 @@ pip install -r requirements.txt
 python main.py
 
 # computes number of target-target pairs having more than one disease in common
-# this process is a bit lengthy(takes about 5 min to run on my laptop with 8Gb of Ram and Quad-Core Intel Core i5) so
+# this process is a bit lengthy(takes about 30s to run on my laptop with 8Gb of Ram and Quad-Core Intel Core i5) so
 python main.py --common_neighbors
 
 # removes directories containing the datasets in the current dir
@@ -84,7 +84,7 @@ The final output of each files is as follows:
 Another important result is the number of target-target pairs sharing a connection to at least two diseases, which is
 printed when `main.py` is finished.
 ```text
-Number of target-target pairs share a connection to at least two diseases : 142015
+Number of target-target pairs share a connection to at least two diseases : 364624, done in 33.80s
 ```
 
 
