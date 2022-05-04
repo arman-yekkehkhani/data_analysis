@@ -1,5 +1,4 @@
 import argparse
-import functools
 import multiprocessing as mp
 import os
 
@@ -61,42 +60,59 @@ def compute_join_stats(evd_df: DataFrame, dss_df: DataFrame, tgt_df: DataFrame) 
             )
 
 
-def has_n_common_neigh(df: DataFrame, n: int):
+def count_common_neigh(df: DataFrame):
     """
-    Returns true if a tgt-tgt pair has greater or equal to n neighbours
+    # TODO:
     """
-    f = lambda x: len(x['dss_x'] & x['dss_y']) > 2 if x['tgt_x'] != x['tgt_y'] else False
-    df['has_n_neighbour'] = df.apply(f, axis=1)
+    df['n_neigh'] = df.apply(lambda x: len(x['left'] & x['right']), axis=1)
     return df
 
 
-def count_n_common_neighbors(evd_df: DataFrame, n_neigh: int, partitions: int):
+def cartesian_prod_idx(size=100):
+    # TODO:
+    return np.hstack(
+        [np.vstack([np.ones(size - i - 1, dtype=np.int8) * i, np.arange(i + 1, size, dtype=np.int8)]) for i in
+         range(size)]).T
+
+
+def cartesian_product(*dfs, partitions):
+    """
+    TODO
+    :param dfs:
+    :param partitions:
+    :return:
+    """
+    # TODO: generalize to multi df
+    idx = cartesian_prod_idx((len(dfs[0])))
+    start_idx = [i * (len(idx) // partitions) for i in range(partitions)]
+    end_idx = start_idx[1:]
+    end_idx.append(len(idx) - 1)
+    return [pd.DataFrame(
+        np.column_stack([df.values[idx[s:f, i]] for i, df in enumerate(dfs)]),
+        columns=['left', 'right']
+    ) for s, f in zip(start_idx, end_idx)]
+
+
+def calc_common_neighbors(evd_df: DataFrame, n_neigh: int, partitions: int):
     """
     Returns total count of target-target pairs having more than n_neigh diseases in common
     """
     df = (evd_df
+          .head(800)
           .filter(['diseaseId', 'targetId'])
           .groupby('targetId')
           .agg(set)
-          .reset_index(level=0)
           )
 
-    # cartesian product
-    df = df.merge(df, how='cross')
-    df.columns = ['tgt_x', 'dss_x', 'tgt_y', 'dss_y']
+    df['dss_num'] = df.apply(lambda x: len(x['diseaseId']), axis=1)
+    df = df[df.dss_num >= n_neigh].filter(['diseaseId'])
 
-    # partition df
-    start_idx = [i * (len(df) // partitions) for i in range(partitions)]
-    end_idx = start_idx[1:]
-    end_idx.append(len(df) - 1)
-    dfs = [df.iloc[s:f, :] for (s, f) in zip(start_idx, end_idx)]
-
-    copier = functools.partial(has_n_common_neigh, n=n_neigh)
+    dfs = cartesian_product(df, df, partitions=partitions)
     with mp.Pool(mp.cpu_count()) as pool:
-        res = pd.concat(pool.map(copier, dfs))
+        res = pd.concat(pool.map(count_common_neigh, dfs))
 
-    # divide by 2 for repeated results
-    return int(res['has_n_neighbour'].sum() / 2)
+    print(res[res.n_neigh >= n_neigh])
+    return len(res[res.n_neigh >= n_neigh])
 
 
 if __name__ == '__main__':
@@ -122,5 +138,9 @@ if __name__ == '__main__':
     dss_tgt_df.to_json('disease_target.json', orient='records', lines=True)
 
     if args.common_neighbors:
+        import time
+
+        t0 = time.time()
         print(f'Number of target-target pairs share a connection to at least two diseases'
-              f' : {count_n_common_neighbors(evd_df, 2, mp.cpu_count())}')
+              f' : {calc_common_neighbors(evd_df, n_neigh=2, partitions=mp.cpu_count())},'
+              f' done in {time.time() - t0:.2f}s')
