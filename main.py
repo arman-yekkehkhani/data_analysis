@@ -64,7 +64,8 @@ def count_common_elm(df: DataFrame):
     """
     count common elements between `left` and `right` columns of a dataframe
     """
-    return np.array(list(map(lambda x, y: len(set(x) & set(y)), df['left'], df['right'])))
+    res = list(filter(lambda x: x >= 2, map(lambda x, y: len(set(x) & set(y)), df['left'].values, df['right'].values)))
+    return len(res)
 
 
 def cartesian_prod_idx(size):
