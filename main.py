@@ -106,9 +106,9 @@ def calc_common_neighbors(evd_df: DataFrame, n_neigh: int, partitions: int):
 
     dfs = cartesian_product(df, df, partitions=partitions)
     with mp.Pool(mp.cpu_count()) as pool:
-        res = np.concatenate(pool.map(count_common_elm, dfs))
+        res = list(pool.map(count_common_elm, dfs))
 
-    return len(res[res >= n_neigh])
+    return sum(res)
 
 
 if __name__ == '__main__':
