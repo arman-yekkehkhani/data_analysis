@@ -44,6 +44,10 @@ def compute_join_stats(evd_df: DataFrame, dss_df: DataFrame, tgt_df: DataFrame) 
     Join evidences, diseases and target dataframes, then sort in ascending order by the median
     """
     return (evd_df
+            .groupby(['diseaseId', 'targetId'])
+            .agg(median=('score', 'median'))
+            .sort_values(by=['median'])
+            .reset_index(level=[0, 1])
             .merge(dss_df,
                    left_on='diseaseId',
                    right_on='id',
@@ -52,11 +56,7 @@ def compute_join_stats(evd_df: DataFrame, dss_df: DataFrame, tgt_df: DataFrame) 
                    left_on='targetId',
                    right_on='id',
                    how='inner')
-            .filter(['diseaseId', 'targetId', 'score', 'name', 'approvedSymbol'])
-            .groupby(['diseaseId', 'targetId'])
-            .agg(median=('score', 'median'))
-            .sort_values(by=['median'])
-            .reset_index(level=[0, 1])
+            .filter(['diseaseId', 'targetId', 'name', 'median', 'approvedSymbol'])
             )
 
 
