@@ -78,12 +78,12 @@ def cartesian_prod_idx(size):
          range(size)]).T
 
 
-def cartesian_product(*dfs, partition_size):
+def cartesian_product(partition_size, *dfs):
     """
     Returns cartesian_product of dfs of the same size divided in to partitions
     """
     idx = cartesian_prod_idx((len(dfs[0])))
-    p_idx = [i * partition_size for i in range(math.ceil(len(dfs[0]) / partition_size) + 1)]
+    p_idx = [i * partition_size for i in range(math.ceil(len(idx) / partition_size) + 1)]
     return [pd.DataFrame(
         np.column_stack([df.values[idx[s:f, i]] for i, df in enumerate(dfs)]),
         columns=['left', 'right']
@@ -102,7 +102,7 @@ def calc_common_neighbors(evd_df: DataFrame, n_neigh: int, partition_size: int):
     df['dss_num'] = df.apply(lambda x: len(x['diseaseId']), axis=1)
     df = df[df.dss_num >= n_neigh].filter(['diseaseId'])
 
-    dfs = cartesian_product(df, df, partition_size=partition_size)
+    dfs = cartesian_product(partition_size, df, df)
     with mp.Pool(mp.cpu_count()) as pool:
         res = list(pool.map(count_common_elm, dfs))
 
