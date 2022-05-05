@@ -1,4 +1,5 @@
 import argparse
+import math
 import multiprocessing as mp
 import os
 
@@ -77,21 +78,18 @@ def cartesian_prod_idx(size):
          range(size)]).T
 
 
-def cartesian_product(*dfs, partitions):
+def cartesian_product(*dfs, partition_size):
     """
     Returns cartesian_product of dfs of the same size divided in to partitions
     """
     idx = cartesian_prod_idx((len(dfs[0])))
-    start_idx = [i * (len(idx) // partitions) for i in range(partitions)]
-    end_idx = start_idx[1:]
-    end_idx.append(len(idx) - 1)
+    p_idx = [i * partition_size for i in range(math.ceil(len(dfs[0]) / partition_size) + 1)]
     return [pd.DataFrame(
         np.column_stack([df.values[idx[s:f, i]] for i, df in enumerate(dfs)]),
         columns=['left', 'right']
-    ) for s, f in zip(start_idx, end_idx)]
+    ) for s, f in zip(p_idx[:-1], p_idx[1:])]
 
-
-def calc_common_neighbors(evd_df: DataFrame, n_neigh: int, partitions: int):
+def calc_common_neighbors(evd_df: DataFrame, n_neigh: int, partition_size: int):
     """
     Returns total count of target-target pairs having more than n_neigh diseases in common
     """
@@ -104,7 +102,7 @@ def calc_common_neighbors(evd_df: DataFrame, n_neigh: int, partitions: int):
     df['dss_num'] = df.apply(lambda x: len(x['diseaseId']), axis=1)
     df = df[df.dss_num >= n_neigh].filter(['diseaseId'])
 
-    dfs = cartesian_product(df, df, partitions=partitions)
+    dfs = cartesian_product(df, df, partition_size=partition_size)
     with mp.Pool(mp.cpu_count()) as pool:
         res = list(pool.map(count_common_elm, dfs))
 
@@ -136,5 +134,5 @@ if __name__ == '__main__':
 
     t0 = time.time()
     print(f'Number of target-target pairs share a connection to at least two diseases'
-          f' : {calc_common_neighbors(evd_df, n_neigh=2, partitions=mp.cpu_count())},'
+          f' : {calc_common_neighbors(evd_df, n_neigh=2, partition_size=100_000)},'
           f' done in {time.time() - t0:.2f}s')
