@@ -92,7 +92,7 @@ Another important result is the number of target-target pairs sharing a connecti
 printed when `main.py` is finished.
 
 ```text
-Number of target-target pairs share a connection to at least two diseases : 364624, done in 33.80s
+Number of target-target pairs share a connection to at least two diseases : 364624, done in 3.24s
 ```
 
 

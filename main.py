@@ -64,7 +64,7 @@ def count_common_elm(df: DataFrame):
     """
     count common elements between `left` and `right` columns of a dataframe
     """
-    res = list(filter(lambda x: x >= 2, map(lambda x, y: len(set(x) & set(y)), df['left'].values, df['right'].values)))
+    res = list(filter(lambda x: x >= 2, map(lambda x, y: len(set(x) & set(y)), df['left'], df['right'])))
     return len(res)
 
 
