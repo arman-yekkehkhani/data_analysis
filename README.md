@@ -12,6 +12,7 @@ The overall structure of the project is as follows:
 data_analysis
     │   README.md
     │   main.py
+    │   tests.py
     │   download_datasets.py
     │   Journey.ipynb
     │   disease_target.json
@@ -24,7 +25,7 @@ data_analysis
 ```
 
 The two Python scripts `main.py` and `download_datasets.py` are main scripts for downloading datasets and preforming
-analysis. Final results of the analysis is saved in `evidence_stats.json` and `disease_target.json`. The former contains
+analysis. `tests.py` include several test cases for sake of sanity check. Final results of the analysis is saved in `evidence_stats.json` and `disease_target.json`. The former contains
 Json objects of evidence statistics, while the later include disease-target pair stats. File `Journey.ipynb` contains a
 comprehensive description of my approach for this project. I tried to compare different options and justify my
 decisions.
