@@ -18,7 +18,7 @@ target_cols = ['id', 'approvedSymbol']
 
 def top3(x):
     """
-    returns top 3 greatest elements
+    returns top 3 greatest elements from a dataframe column
     """
     if len(x.values) < 3:
         return list(x.values)
@@ -32,6 +32,7 @@ def compute_stats(df: DataFrame) -> DataFrame:
     Groups evidence df by ['diseaseId', 'targetId'], then compute median and 3 greatest scores
     """
     result = (df
+              .dropna()
               .groupby(['diseaseId', 'targetId'])
               .agg({'score': ['median', top3]})
               .reset_index(level=[0, 1])
@@ -45,6 +46,7 @@ def compute_join_stats(evd_df: DataFrame, dss_df: DataFrame, tgt_df: DataFrame) 
     Join evidences, diseases and target dataframes, then sort in ascending order by the median
     """
     return (evd_df
+            .dropna()
             .groupby(['diseaseId', 'targetId'])
             .agg(median=('score', 'median'))
             .sort_values(by=['median'])
@@ -69,7 +71,7 @@ def count_common_elm(df: DataFrame):
     return len(res)
 
 
-def cartesian_prod_idx(size):
+def cartesian_prod_idx(size: int):
     """
     Return cartesian_product of indices of two dfs, excluding x-x, retaining one of x-y and y-x
     """
@@ -78,7 +80,7 @@ def cartesian_prod_idx(size):
          range(size)]).T
 
 
-def cartesian_product(partition_size, *dfs):
+def cartesian_product(partition_size: int, *dfs):
     """
     Returns cartesian_product of dfs of the same size divided in to partitions
     """
@@ -88,6 +90,7 @@ def cartesian_product(partition_size, *dfs):
         np.column_stack([df.values[idx[s:f, i]] for i, df in enumerate(dfs)]),
         columns=['left', 'right']
     ) for s, f in zip(p_idx[:-1], p_idx[1:])]
+
 
 def calc_common_neighbors(evd_df: DataFrame, n_neigh: int, partition_size: int):
     """
